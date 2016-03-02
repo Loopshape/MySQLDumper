@@ -6,12 +6,12 @@ $tpl->set_filenames(array(
 
 $sqledit="SHOW FIELDS FROM `$tablename`";
 $res=MSD_query($sqledit);
-$num=mysqli_num_rows($res);
+$num=mysql_numrows($res);
 
 $feldnamen="";
 for ($x=0; $x<$num; $x++)
 {
-	$row=mysqli_fetch_object($res);
+	$row=mysql_fetch_object($res);
 	$feldnamen.=$row->Field.'|';
 	$tpl->assign_block_vars('ROW',array(
 		'CLASS' => ($x%2) ? 1 : 2, 

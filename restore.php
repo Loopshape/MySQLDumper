@@ -78,7 +78,7 @@ $pageheader=MSDheader().headline($lang['L_RESTORE']);
 $aus1=$page_parameter='';
 $RestoreFertig=$eingetragen=$dauer=$filegroesse=0;
 MSD_mysql_connect($restore['dump_encoding'],true,$restore['actual_table']);
-@((bool)mysqli_query($GLOBALS["___mysqli_ston"], "USE " . $databases['db_actual'])) or die($lang['L_DB_SELECT_ERROR'].$databases['db_actual'].$lang['L_DB_SELECT_ERROR2']);
+@mysql_select_db($databases['db_actual']) or die($lang['L_DB_SELECT_ERROR'].$databases['db_actual'].$lang['L_DB_SELECT_ERROR2']);
 
 // open backup file
 $restore['filehandle']=($restore['compressed']==1) ? gzopen($config['paths']['backup'].$restore['filename'],'r') : fopen($config['paths']['backup'].$restore['filename'],'r');
@@ -118,9 +118,9 @@ if ($restore['filehandle'])
 		// Disable Keys of actual table to speed up restoring
 		if (is_array($restore['tables_to_restore'])&&sizeof($restore['tables_to_restore'])>0&&in_array($restore['actual_table'],$restore['tables_to_restore']))
 		{
-			@mysqli_query($config['dbconnection'], '/*!40000 ALTER TABLE `'.$restore['actual_table'].'` DISABLE KEYS */;');
+			@mysql_query('/*!40000 ALTER TABLE `'.$restore['actual_table'].'` DISABLE KEYS */;',$config['dbconnection']);
 		}
-		elseif (sizeof($restore['tables_to_restore'])==0&&($restore['actual_table']>''&&$restore['actual_table']!='unbekannt')) @mysqli_query($config['dbconnection'], '/*!40000 ALTER TABLE `'.$restore['actual_table'].'` DISABLE KEYS */;');
+		elseif (sizeof($restore['tables_to_restore'])==0&&($restore['actual_table']>''&&$restore['actual_table']!='unbekannt')) @mysql_query('/*!40000 ALTER TABLE `'.$restore['actual_table'].'` DISABLE KEYS */;',$config['dbconnection']);
 		
 		WHILE (($a<$restore['anzahl_zeilen'])&&(!$restore['fileEOF'])&&($dauer<$restore['max_zeit'])&&!$restore['EOB'])
 		{
@@ -128,22 +128,22 @@ if ($restore['filehandle'])
 			if ($sql_command>'')
 			{
 				//WriteLog(htmlspecialchars($sql_command));
-				$res=mysqli_query($config['dbconnection'], $sql_command);
+				$res=mysql_query($sql_command,$config['dbconnection']);
 				if (!$res===false)
 				{
-					$anzsql=mysqli_affected_rows($config['dbconnection']);
+					$anzsql=mysql_affected_rows($config['dbconnection']);
 					// Anzahl der eingetragenen Datensaetze ermitteln (Indexaktionen nicht zaehlen)
 					$command=strtoupper(substr($sql_command,0,7));
 					if ($command=='INSERT ')
 					{
-						$anzsql=mysqli_affected_rows($config['dbconnection']);
+						$anzsql=mysql_affected_rows($config['dbconnection']);
 						if ($anzsql>0) $restore['eintraege_ready']+=$anzsql;
 					}
 				}
 				else
 				{
 					// Bei MySQL-Fehlern sofort abbrechen und Info ausgeben
-					$meldung=@((is_object($config['dbconnection'])) ? mysqli_error($config['dbconnection']) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false));
+					$meldung=@mysql_error($config['dbconnection']);
 					if ($meldung!='')
 					{
 						if (strtolower(substr($meldung,0,15))=='duplicate entry')

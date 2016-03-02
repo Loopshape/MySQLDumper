@@ -276,23 +276,23 @@ function submit_create_action($sql)
 		}
 	}
 
-	$res=@mysqli_query($GLOBALS["___mysqli_ston"], $sql);
+	$res=@mysql_query($sql);
 	if ($res===false)
 	{
 		// erster Versuch fehlgeschlagen -> zweiter Versuch - vielleicht versteht der Server die Inline-Kommentare nicht?
 		$sql=del_inline_comments($sql);
-		$res=@mysqli_query($GLOBALS["___mysqli_ston"], downgrade($sql));
+		$res=@mysql_query(downgrade($sql));
 		if ($res===false)
 		{
 			// wieder nichts. Ok, haben wir hier einen alten MySQL-Server 3.x oder 4.0.x?
 			// versuchen wir es mal mit der alten Syntax
-			$res=@mysqli_query($GLOBALS["___mysqli_ston"], downgrade($sql));
+			$res=@mysql_query(downgrade($sql));
 		}
 	}
 	if ($res===false)
 	{
 		// wenn wir hier angekommen sind hat nichts geklappt -> Fehler ausgeben und abbrechen
-		SQLError($sql,((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+		SQLError($sql,mysql_error());
 		die("<br>Fatal error: Couldn't create table or view `".$tablename."´");
 	}
 	return $tablename;
@@ -302,11 +302,11 @@ function get_insert_syntax($table)
 {
 	$insert='';
 	$sql='SHOW COLUMNS FROM `'.$table.'`';
-	$res=mysqli_query($GLOBALS["___mysqli_ston"], $sql);
+	$res=mysql_query($sql);
 	if ($res)
 	{
 		$insert='INSERT INTO `'.$table.'` (';
-		while ($row=mysqli_fetch_object($res))
+		while ($row=mysql_fetch_object($res))
 		{
 			$insert.='`'.$row->Field.'`,';
 		}
@@ -316,7 +316,7 @@ function get_insert_syntax($table)
 	{
 		global $restore;
 		v($restore);
-		SQLError($sql,((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+		SQLError($sql,mysql_error());
 	}
 	return $insert;
 }
